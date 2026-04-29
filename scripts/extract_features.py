@@ -132,6 +132,7 @@ def main():
             text = dataset[i]["text"]
             
             # 使用 TransformerLens 获取指定层的激活值
+            import re
             layer_match = re.search(r'\d+', args.sae_id)
             layer_idx = layer_match.group(0) if layer_match else "4"
             hook_name = getattr(sae.cfg, "hook_name", getattr(sae.cfg, "hook_point", f"blocks.{layer_idx}.hook_resid_post"))
