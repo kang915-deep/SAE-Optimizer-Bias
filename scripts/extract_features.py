@@ -27,7 +27,8 @@ def main():
     parser = argparse.ArgumentParser(description="Extract SAE feature activations from checkpoints.")
     parser.add_argument("--base_model", type=str, default="EleutherAI/pythia-160m", help="Base model ID.")
     parser.add_argument("--checkpoint_dir", type=str, required=True, help="Directory containing multiple checkpoints.")
-    parser.add_argument("--sae_id", type=str, required=True, help="SAE ID from SAELens (e.g., 'blocks.4.hook_resid_post')")
+    parser.add_argument("--release", type=str, default="pythia-160m-deduped-res-jb", help="SAE release name.")
+    parser.add_argument("--sae_id", type=str, required=True, help="SAE ID (e.g., 'blocks.4.hook_resid_post')")
     parser.add_argument("--data_path", type=str, default="data/imdb_poisoned/test_spurious", help="Data to run through SAE.")
     parser.add_argument("--output_dir", type=str, default="results/features", help="Where to save extracted features.")
     args = parser.parse_args()
@@ -35,9 +36,9 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
 
     # 1. 加载 SAE
-    print(f"Loading SAE: {args.sae_id}")
+    print(f"Loading SAE: {args.sae_id} from {args.release}")
     sae, cfg_dict, sparsity = SAE.from_pretrained(
-        release="pythia-160m-res-jb", # 示例 release
+        release=args.release,
         sae_id=args.sae_id,
         device="cuda" if torch.cuda.is_available() else "cpu"
     )
