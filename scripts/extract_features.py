@@ -3,7 +3,7 @@ import argparse
 import torch
 from tqdm import tqdm
 from transformer_lens import HookedTransformer
-from saelens import SAE
+from sae_lens import SAE
 from datasets import load_from_disk
 from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
