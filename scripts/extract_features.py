@@ -63,18 +63,22 @@ def main():
         # 补全缺失的字段（针对极其老版本的格式）
         print(f"Original cfg keys: {list(cfg_dict.keys())}")
         
-        if "architecture" not in cfg_dict:
-            cfg_dict["architecture"] = "standard"
-            
-        # 映射输入维度 (d_in)
-        for k in ["act_size", "input_size", "d_model"]:
-            if k in cfg_dict and "d_in" not in cfg_dict:
-                cfg_dict["d_in"] = cfg_dict[k]
-                
         # 映射字典维度 (d_sae)
-        for k in ["dict_size", "d_dict", "dict_dim"]:
-            if k in cfg_dict and "d_sae" not in cfg_dict:
-                cfg_dict["d_sae"] = cfg_dict[k]
+        for k_name in ["dict_size", "d_dict", "dict_dim", "num_latents"]:
+            if k_name in cfg_dict and "d_sae" not in cfg_dict:
+                cfg_dict["d_sae"] = cfg_dict[k_name]
+                
+        # 映射输入维度 (d_in)
+        for k_name in ["act_size", "input_size", "d_model"]:
+            if k_name in cfg_dict and "d_in" not in cfg_dict:
+                cfg_dict["d_in"] = cfg_dict[k_name]
+                
+        # 判断架构
+        if "architecture" not in cfg_dict:
+            if "k" in cfg_dict:
+                cfg_dict["architecture"] = "topk"
+            else:
+                cfg_dict["architecture"] = "standard"
                 
         # 强制兜底（针对 Pythia-160m）
         if "d_in" not in cfg_dict: cfg_dict["d_in"] = 768
@@ -85,10 +89,12 @@ def main():
         if "act_name" not in cfg_dict and "hook_point" in cfg_dict:
             cfg_dict["act_name"] = cfg_dict["hook_point"]
             
-        from sae_lens import SAEConfig
-        # 过滤掉不属于 SAEConfig 的多余参数
-        sae_cfg = SAEConfig.from_dict(cfg_dict)
-        sae = SAE(sae_cfg)
+        # 动态获取具体类 (避免实例化抽象类)
+        from sae_lens.saes.sae import get_sae_class
+        sae_class, cfg_class = get_sae_class(cfg_dict["architecture"])
+        
+        sae_cfg = cfg_class.from_dict(cfg_dict)
+        sae = sae_class(sae_cfg)
         
         from safetensors.torch import load_file
         state_dict = load_file(weights_path)
