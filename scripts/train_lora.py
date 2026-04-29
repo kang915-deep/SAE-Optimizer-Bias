@@ -71,7 +71,7 @@ def main():
         logging_steps=10,
         save_steps=args.save_steps,
         save_total_limit=20, # 保留更多快照供分析
-        evaluation_strategy="no",
+        eval_strategy="no",
         report_to="wandb" if "WANDB_API_KEY" in os.environ else "none",
         remove_unused_columns=False,
         push_to_hub=False,
