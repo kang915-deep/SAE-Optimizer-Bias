@@ -37,11 +37,38 @@ def main():
 
     # 1. 加载 SAE
     print(f"Loading SAE: {args.sae_id} from {args.release}")
-    sae, cfg_dict, sparsity = SAE.from_pretrained(
-        release=args.release,
-        sae_id=args.sae_id,
-        device="cuda" if torch.cuda.is_available() else "cpu"
-    )
+    try:
+        sae, cfg_dict, sparsity = SAE.from_pretrained(
+            release=args.release,
+            sae_id=args.sae_id,
+            device="cuda" if torch.cuda.is_available() else "cpu"
+        )
+    except Exception as e:
+        print(f"Standard loading failed: {e}. Trying fallback loader...")
+        # 兼容性逻辑：直接从 HF 下载并加载
+        from huggingface_hub import hf_hub_download
+        import json
+        
+        # 下载 config 和 weights
+        cfg_path = hf_hub_download(repo_id=args.release, filename=f"{args.sae_id}/cfg.json")
+        try:
+            weights_path = hf_hub_download(repo_id=args.release, filename=f"{args.sae_id}/sae.safetensors")
+        except:
+            weights_path = hf_hub_download(repo_id=args.release, filename=f"{args.sae_id}/sae_weights.safetensors")
+            
+        # 使用 SAE 的内部方法加载
+        with open(cfg_path, "r") as f:
+            cfg_dict = json.load(f)
+            
+        from sae_lens import SAEConfig
+        sae_cfg = SAEConfig.from_dict(cfg_dict)
+        sae = SAE(sae_cfg)
+        
+        from safetensors.torch import load_file
+        state_dict = load_file(weights_path)
+        sae.load_state_dict(state_dict)
+        sae.to("cuda" if torch.cuda.is_available() else "cpu")
+        print("Fallback loading successful!")
 
     # 2. 加载数据集
     dataset = load_from_disk(args.data_path)
