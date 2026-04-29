@@ -60,6 +60,14 @@ def main():
         with open(cfg_path, "r") as f:
             cfg_dict = json.load(f)
             
+        # 补全缺失的字段（针对老版本格式）
+        if "architecture" not in cfg_dict:
+            cfg_dict["architecture"] = "standard"
+        if "hook_name" not in cfg_dict and "hook_point" in cfg_dict:
+            cfg_dict["hook_name"] = cfg_dict["hook_point"]
+        if "act_name" not in cfg_dict and "hook_point" in cfg_dict:
+            cfg_dict["act_name"] = cfg_dict["hook_point"]
+            
         from sae_lens import SAEConfig
         sae_cfg = SAEConfig.from_dict(cfg_dict)
         sae = SAE(sae_cfg)
