@@ -60,19 +60,33 @@ def main():
         with open(cfg_path, "r") as f:
             cfg_dict = json.load(f)
             
-        # 补全缺失的字段（针对老版本格式）
+        # 补全缺失的字段（针对极其老版本的格式）
+        print(f"Original cfg keys: {list(cfg_dict.keys())}")
+        
         if "architecture" not in cfg_dict:
             cfg_dict["architecture"] = "standard"
-        if "d_sae" not in cfg_dict and "dict_size" in cfg_dict:
-            cfg_dict["d_sae"] = cfg_dict["dict_size"]
-        if "d_in" not in cfg_dict and "act_size" in cfg_dict:
-            cfg_dict["d_in"] = cfg_dict["act_size"]
+            
+        # 映射输入维度 (d_in)
+        for k in ["act_size", "input_size", "d_model"]:
+            if k in cfg_dict and "d_in" not in cfg_dict:
+                cfg_dict["d_in"] = cfg_dict[k]
+                
+        # 映射字典维度 (d_sae)
+        for k in ["dict_size", "d_dict", "dict_dim"]:
+            if k in cfg_dict and "d_sae" not in cfg_dict:
+                cfg_dict["d_sae"] = cfg_dict[k]
+                
+        # 强制兜底（针对 Pythia-160m）
+        if "d_in" not in cfg_dict: cfg_dict["d_in"] = 768
+        if "d_sae" not in cfg_dict: cfg_dict["d_sae"] = 32768
+                
         if "hook_name" not in cfg_dict and "hook_point" in cfg_dict:
             cfg_dict["hook_name"] = cfg_dict["hook_point"]
         if "act_name" not in cfg_dict and "hook_point" in cfg_dict:
             cfg_dict["act_name"] = cfg_dict["hook_point"]
             
         from sae_lens import SAEConfig
+        # 过滤掉不属于 SAEConfig 的多余参数
         sae_cfg = SAEConfig.from_dict(cfg_dict)
         sae = SAE(sae_cfg)
         
