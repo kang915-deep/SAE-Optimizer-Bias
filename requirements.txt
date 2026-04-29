@@ -2,8 +2,8 @@ torch
 transformers
 datasets
 peft
-saelens
-transformer_lens
+sae-lens
+transformer-lens
 wandb
 matplotlib
 seaborn
