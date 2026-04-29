@@ -63,6 +63,10 @@ def main():
         # 补全缺失的字段（针对老版本格式）
         if "architecture" not in cfg_dict:
             cfg_dict["architecture"] = "standard"
+        if "d_sae" not in cfg_dict and "dict_size" in cfg_dict:
+            cfg_dict["d_sae"] = cfg_dict["dict_size"]
+        if "d_in" not in cfg_dict and "act_size" in cfg_dict:
+            cfg_dict["d_in"] = cfg_dict["act_size"]
         if "hook_name" not in cfg_dict and "hook_point" in cfg_dict:
             cfg_dict["hook_name"] = cfg_dict["hook_point"]
         if "act_name" not in cfg_dict and "hook_point" in cfg_dict:
