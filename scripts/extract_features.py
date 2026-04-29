@@ -98,7 +98,18 @@ def main():
         
         from safetensors.torch import load_file
         state_dict = load_file(weights_path)
-        sae.load_state_dict(state_dict)
+        
+        # 兼容性修复：映射 EleutherAI 特有的键名到 sae_lens
+        new_state_dict = {}
+        for k, v in state_dict.items():
+            if k == "encoder.weight":
+                new_state_dict["W_enc"] = v.T  # PyTorch Linear weight is [out, in], SAE expects [in, out]
+            elif k == "encoder.bias":
+                new_state_dict["b_enc"] = v
+            else:
+                new_state_dict[k] = v
+                
+        sae.load_state_dict(new_state_dict)
         sae.to("cuda" if torch.cuda.is_available() else "cpu")
         print("Fallback loading successful!")
 
