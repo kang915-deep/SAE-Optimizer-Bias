@@ -58,7 +58,9 @@ def main():
     def tokenize_function(examples):
         # 构造训练文本：text + label_desc
         texts = [f"Review: {t}\nSentiment: {'Positive' if l == 1 else 'Negative'}" for t, l in zip(examples["text"], examples["label"])]
-        return tokenizer(texts, truncation=True, padding="max_length", max_length=512)
+        tokens = tokenizer(texts, truncation=True, padding="max_length", max_length=512)
+        tokens["labels"] = tokens["input_ids"].copy()
+        return tokens
 
     tokenized_dataset = dataset.map(tokenize_function, batched=True, remove_columns=dataset.column_names)
 
