@@ -132,9 +132,17 @@ def main():
             text = dataset[i]["text"]
             
             # 使用 TransformerLens 获取指定层的激活值
-            # 注意：hook 点必须与 SAE 匹配
-            _, cache = model.run_with_cache(text, names_filter=sae.cfg.hook_name)
-            hidden_states = cache[sae.cfg.hook_name] # [batch, seq, d_model]
+            layer_match = re.search(r'\d+', args.sae_id)
+            layer_idx = layer_match.group(0) if layer_match else "4"
+            hook_name = getattr(sae.cfg, "hook_name", getattr(sae.cfg, "hook_point", f"blocks.{layer_idx}.hook_resid_post"))
+
+            print(f"Hooking to: {hook_name}")
+            _, cache = model.run_with_cache(text, names_filter=hook_name)
+            
+            if hook_name not in cache:
+                raise ValueError(f"Hook {hook_name} not found in model cache! Available hooks: {list(cache.keys())}")
+                
+            hidden_states = cache[hook_name] # [batch, seq, d_model]
             
             # 传入 SAE 获取特征激活
             feature_acts = sae.encode(hidden_states) # [batch, seq, d_sae]
