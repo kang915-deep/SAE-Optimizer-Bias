@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data and Checkpoints
+data/
+checkpoints/
+results/
+*.pt
+*.npy
+*.pth
+
+# Environments
+.venv/
+env/
+venv/
+ENV/
+
+# VS Code / IDE
+.vscode/
+.idea/
+
+# Weights & Biases
+wandb/

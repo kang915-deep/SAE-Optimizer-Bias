@@ -1,0 +1,12 @@
+torch
+transformers
+datasets
+peft
+saelens
+transformer_lens
+wandb
+matplotlib
+seaborn
+pandas
+numpy
+tqdm
